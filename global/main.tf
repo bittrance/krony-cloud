@@ -5,7 +5,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "krony" {
-  name = "krony"
+  name = "krony-cloud-global"
   location = "West Europe"
 }
 
