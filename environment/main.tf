@@ -74,3 +74,51 @@ resource "azurerm_linux_virtual_machine_scale_set" "kubernetes" {
     }
   }
 }
+
+resource "azurerm_public_ip" "krony_bastion" {
+  name                = "krony-${var.env_name}-bastion"
+  resource_group_name = azurerm_resource_group.krony_env.name
+  location            = azurerm_resource_group.krony_env.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "krony_bastion" {
+  name                = "krony-${var.env_name}-bastion"
+  location            = azurerm_resource_group.krony_env.location
+  resource_group_name = azurerm_resource_group.krony_env.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.krony_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id = azurerm_public_ip.krony_bastion.id
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "krony_bastion" {
+  name                = "krony-${var.env_name}-bastion"
+  resource_group_name = azurerm_resource_group.krony_env.name
+  location            = azurerm_resource_group.krony_env.location
+  size                = "Standard_B1s"
+  admin_username      = "kronyadmin"
+  network_interface_ids = [
+    azurerm_network_interface.krony_bastion.id,
+  ]
+
+  admin_ssh_key {
+    username   = "kronyadmin"
+    public_key = file("./ssh-keys/${var.env_name}.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+}
