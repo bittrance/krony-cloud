@@ -8,6 +8,15 @@ variable "env_name" {
   default = "test"
 }
 
+
+output "client_certificate" {
+  value = azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate
+}
+
+output "kube_config" {
+  value = azurerm_kubernetes_cluster.krony_kube.kube_config_raw
+}
+
 locals {
   address_space = "10.0.0.0/16"
 }
@@ -36,42 +45,21 @@ resource "azurerm_subnet" "krony_subnet" {
   address_prefixes     = [cidrsubnet(local.address_space, 8, 0)]
 }
 
-resource "azurerm_linux_virtual_machine_scale_set" "kubernetes" {
-  name                = "kubernetes-${var.env_name}"
+
+resource "azurerm_kubernetes_cluster" "krony_kube" {
+  name                = "krony-${var.env_name}-kubernetes"
   resource_group_name = azurerm_resource_group.krony_env.name
   location            = azurerm_resource_group.krony_env.location
-  sku                 = "Standard_B1s"
-  instances           = 3
-  zone_balance        = true
-  zones               = ["1", "2", "3"]
-  admin_username      = "kronyadmin"
+  dns_prefix          = "krony-${var.env_name}"
 
-  admin_ssh_key {
-    username   = "kronyadmin"
-    public_key = file("./ssh-keys/${var.env_name}.pub")
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_B2s"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "primary"
-    primary = true
-
-    ip_configuration {
-      name      = "primary"
-      primary   = true
-      subnet_id = azurerm_subnet.krony_subnet.id
-    }
+  identity {
+    type = "SystemAssigned"
   }
 }
 
