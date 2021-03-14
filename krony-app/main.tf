@@ -18,6 +18,23 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.krony_kube.kube_config.0.cluster_ca_certificate)
 }
 
+resource "kubernetes_service" "dkron" {
+  metadata {
+    name = "dkron-api"
+  }
+  spec {
+    type = "LoadBalancer"
+    selector = {
+      app         = "dkron-api"
+      environment = var.env_name
+    }
+    port {
+      port        = 80
+      target_port = 8080
+    }
+  }
+}
+
 resource "kubernetes_deployment" "dkron" {
   metadata {
     name = "dkron"
