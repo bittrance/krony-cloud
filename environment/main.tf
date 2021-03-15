@@ -1,13 +1,19 @@
 provider "azurerm" {
-  features {
-    
-  }
+  features {}
+}
+
+provider "azuread" {}
+
+provider "kubernetes" {
+  host                   = azurerm_kubernetes_cluster.krony_kube.kube_config.0.host
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.cluster_ca_certificate)
 }
 
 variable "env_name" {
   default = "test"
 }
-
 
 output "client_certificate" {
   value = azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate
@@ -21,14 +27,16 @@ locals {
   address_space = "10.0.0.0/16"
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "krony_env" {
-  name = "krony-cloud-${var.env_name}"
+  name     = "krony-cloud-${var.env_name}"
   location = "West Europe"
 }
 
 resource "azurerm_dns_zone" "krony_cloud" {
   resource_group_name = azurerm_resource_group.krony_env.name
-  name = "${var.env_name}.krony.cloud"
+  name                = "${var.env_name}.krony.cloud"
 }
 
 resource "azurerm_virtual_network" "krony_net" {
