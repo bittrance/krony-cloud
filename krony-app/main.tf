@@ -6,11 +6,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_kubernetes_cluster" "krony_kube" {
-  name                = "krony-${var.env_name}-kubernetes"
-  resource_group_name = "krony-cloud-${var.env_name}"
-}
-
 provider "kubernetes" {
   host                   = data.azurerm_kubernetes_cluster.krony_kube.kube_config.0.host
   client_certificate     = base64decode(data.azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate)
@@ -18,9 +13,17 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.krony_kube.kube_config.0.cluster_ca_certificate)
 }
 
+data "azurerm_kubernetes_cluster" "krony_kube" {
+  name                = "krony-${var.env_name}-kubernetes"
+  resource_group_name = "krony-cloud-${var.env_name}"
+}
+
 resource "kubernetes_service" "dkron" {
   metadata {
     name = "dkron-api"
+    annotations = {
+      "external-dns.alpha.kubernetes.io/hostname" = "api.${var.env_name}.krony.cloud"
+    }
   }
   spec {
     type = "LoadBalancer"
