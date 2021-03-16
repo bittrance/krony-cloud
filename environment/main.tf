@@ -29,12 +29,25 @@ locals {
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_dns_zone" "krony_cloud" {
+  name = "krony.cloud"
+}
+
 resource "azurerm_resource_group" "krony_env" {
   name     = "krony-cloud-${var.env_name}"
   location = "West Europe"
 }
 
-resource "azurerm_dns_zone" "krony_cloud" {
+resource "azurerm_dns_ns_record" "krony_subdomain" {
+  name                = var.env_name
+  zone_name           = data.azurerm_dns_zone.krony_cloud.name
+  # TODO: The zone and the record has to be in the same RG?
+  resource_group_name = "krony-cloud-global"
+  ttl                 = 300
+  records             = azurerm_dns_zone.krony_subdomain.name_servers
+}
+
+resource "azurerm_dns_zone" "krony_subdomain" {
   resource_group_name = azurerm_resource_group.krony_env.name
   name                = "${var.env_name}.krony.cloud"
 }

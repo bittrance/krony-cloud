@@ -29,6 +29,7 @@ resource "random_password" "external_dns" {
 }
 
 resource "azurerm_role_assignment" "external_dns" {
+  # TODO: This is not really the right scope
   scope                = azurerm_resource_group.krony_env.id
   role_definition_name = "Contributor"
   principal_id         = azuread_service_principal.external_dns.object_id
@@ -61,9 +62,9 @@ resource "kubernetes_deployment" "external_dns" {
           args = [
             "--source=service",
             "--source=ingress",
-            "--domain-filter=${azurerm_dns_zone.krony_cloud.name}",
+            "--domain-filter=${azurerm_dns_zone.krony_subdomain.name}",
             "--provider=azure",
-            "--azure-resource-group=${azurerm_resource_group.krony_env.name}",
+            # "--azure-resource-group=${azurerm_resource_group.krony_env.name}",
           ]
           volume_mount {
             name = "external-dns-credentials"
