@@ -18,6 +18,22 @@ data "azurerm_kubernetes_cluster" "krony_kube" {
   resource_group_name = "krony-cloud-${var.env_name}"
 }
 
+resource "kubernetes_ingress" "dkron" {
+  metadata {
+    name = "dkron-api"
+    annotations = {
+      "external-dns.alpha.kubernetes.io/hostname" = "api.${var.env_name}.krony.cloud"
+    }
+  }
+
+  spec {
+    backend {
+      service_name = kubernetes_service.dkron.metadata.0.name
+      service_port = 8081
+    }
+  }
+}
+
 resource "kubernetes_service" "dkron" {
   metadata {
     name = "dkron-api"
@@ -42,7 +58,7 @@ resource "kubernetes_deployment" "dkron" {
   metadata {
     name = "dkron"
     labels = {
-      app = "dkron-api"
+      app         = "dkron-api"
       environment = var.env_name
     }
   }
@@ -51,14 +67,14 @@ resource "kubernetes_deployment" "dkron" {
     replicas = 3
     selector {
       match_labels = {
-        app = "dkron-api"
+        app         = "dkron-api"
         environment = var.env_name
       }
     }
     template {
       metadata {
         labels = {
-          app = "dkron-api"
+          app         = "dkron-api"
           environment = var.env_name
         }
       }
@@ -76,22 +92,7 @@ resource "kubernetes_deployment" "dkron" {
           port {
             container_port = 8080
           }
-
-        #   liveness_probe {
-        #     http_get {
-        #       path = "/nginx_status"
-        #       port = 80
-
-        #       http_header {
-        #         name  = "X-Custom-Header"
-        #         value = "Awesome"
-        #       }
-        #     }
-
-        #     initial_delay_seconds = 3
-        #     period_seconds        = 3
-        #   }
-        }        
+        }
       }
     }
   }
