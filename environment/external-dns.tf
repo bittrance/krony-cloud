@@ -67,9 +67,9 @@ resource "kubernetes_deployment" "external_dns" {
             # "--azure-resource-group=${azurerm_resource_group.krony_env.name}",
           ]
           volume_mount {
-            name = "external-dns-credentials"
+            name       = "external-dns-credentials"
             mount_path = "/etc/kubernetes"
-            read_only = true
+            read_only  = true
           }
         }
         volume {

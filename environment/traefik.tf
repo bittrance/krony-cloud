@@ -11,6 +11,7 @@ resource "kubernetes_service" "traefik" {
     namespace = "kube-system"
   }
   spec {
+    type = "LoadBalancer"
     selector = {
       app = "traefik"
     }
@@ -46,12 +47,13 @@ resource "kubernetes_daemonset" "traefik" {
         service_account_name             = "traefik-ingress-controller"
         termination_grace_period_seconds = 60
         container {
-          image = "traefik:v1.7"
+          image = "traefik:v2.4.7"
           name  = "traefik"
           args = [
-            # "--api",
-            "--kubernetes",
-            "--logLevel=INFO",
+            "--providers.kubernetesingress",
+            "--providers.kubernetesingress.ingressendpoint.publishedservice=kube-system/traefik-ingress-controller",
+            "--log",
+            "--log.level=DEBUG",
           ]
           port {
             name           = "http"
