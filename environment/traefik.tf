@@ -50,6 +50,7 @@ resource "kubernetes_daemonset" "traefik" {
           image = "traefik:v2.4.7"
           name  = "traefik"
           args = [
+            "--accesslog",
             "--providers.kubernetesingress",
             "--providers.kubernetesingress.ingressendpoint.publishedservice=kube-system/traefik-ingress-controller",
             "--log",
