@@ -3,6 +3,7 @@ resource "kubernetes_ingress" "dkron" {
     name = "dkron-api"
     annotations = {
       "traefik.ingress.kubernetes.io/router.entrypoints" = "web,websecure"
+      "traefik.ingress.kubernetes.io/router.middlewares" = "customerauth@file"
     }
   }
   spec {

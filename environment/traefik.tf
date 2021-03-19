@@ -68,6 +68,7 @@ resource "kubernetes_daemonset" "traefik" {
             # "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory",
             "--certificatesresolvers.letsencrypt.acme.email=${var.letsencrypt_email}",
             "--certificatesresolvers.letsencrypt.acme.tlschallenge=true",
+            "--providers.file.filename=/config/traefik.toml",
           ]
           port {
             name           = "http"
@@ -80,8 +81,36 @@ resource "kubernetes_daemonset" "traefik" {
               add  = ["NET_BIND_SERVICE"]
             }
           }
+          volume_mount {
+            name       = "traefik-config"
+            mount_path = "/config"
+            read_only  = true
+          }
+        }
+        volume {
+          name = "traefik-config"
+          config_map {
+            name = "traefik-config"
+          }
         }
       }
     }
+  }
+}
+
+# TODO: This is not optimal, in particular not since it is the same list for all envs
+resource "kubernetes_config_map" "traefik" {
+  metadata {
+    name      = "traefik-config"
+    namespace = "kube-system"
+  }
+  data = {
+    "traefik.toml" = <<-EOT
+      [http.middlewares]
+      [http.middlewares.customerauth.basicauth]
+      users = [
+        "bittrance:$2y$05$JOd.zJDDDiHhnp.gRIVHfu5LlYWda4dVduYUiefjd17mDS8xVZkru"
+      ]
+    EOT
   }
 }
