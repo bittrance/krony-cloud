@@ -1,3 +1,7 @@
+variable "letsencrypt_email" {
+  type = string
+}
+
 resource "kubernetes_service_account" "traefik" {
   metadata {
     name      = "traefik-ingress-controller"
@@ -18,6 +22,10 @@ resource "kubernetes_service" "traefik" {
     port {
       name = "http"
       port = 80
+    }
+    port {
+      name = "https"
+      port = 443
     }
   }
 }
@@ -51,10 +59,15 @@ resource "kubernetes_daemonset" "traefik" {
           name  = "traefik"
           args = [
             "--accesslog",
-            "--providers.kubernetesingress",
             "--providers.kubernetesingress.ingressendpoint.publishedservice=kube-system/traefik-ingress-controller",
-            "--log",
             "--log.level=DEBUG",
+            "--entrypoints.web.address=:80",
+            "--entrypoints.web.http.redirections.entrypoint.to=websecure",
+            "--entrypoints.websecure.address=:443",
+            "--entrypoints.websecure.http.tls.certresolver=letsencrypt",
+            # "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory",
+            "--certificatesresolvers.letsencrypt.acme.email=${var.letsencrypt_email}",
+            "--certificatesresolvers.letsencrypt.acme.tlschallenge=true",
           ]
           port {
             name           = "http"

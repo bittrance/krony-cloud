@@ -1,6 +1,9 @@
 resource "kubernetes_ingress" "dkron" {
   metadata {
     name = "dkron-api"
+    annotations = {
+      "traefik.ingress.kubernetes.io/router.entrypoints" = "web,websecure"
+    }
   }
   spec {
     rule {
@@ -11,7 +14,7 @@ resource "kubernetes_ingress" "dkron" {
             service_name = kubernetes_service.dkron.metadata.0.name
             service_port = "http"
           }
-          path = "/"
+          path = "/v1"
         }
       }
     }
