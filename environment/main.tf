@@ -1,3 +1,10 @@
+locals {
+  host                   = azurerm_kubernetes_cluster.krony_kube.kube_config.0.host
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.cluster_ca_certificate)
+}
+
 provider "azurerm" {
   features {}
 }
@@ -5,10 +12,19 @@ provider "azurerm" {
 provider "azuread" {}
 
 provider "kubernetes" {
-  host                   = azurerm_kubernetes_cluster.krony_kube.kube_config.0.host
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.krony_kube.kube_config.0.cluster_ca_certificate)
+  host                   = local.host
+  client_certificate     = local.client_certificate
+  client_key             = local.client_key
+  cluster_ca_certificate = local.cluster_ca_certificate
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = local.host
+    client_certificate     = local.client_certificate
+    client_key             = local.client_key
+    cluster_ca_certificate = local.cluster_ca_certificate
+  }
 }
 
 variable "env_name" {
