@@ -108,8 +108,15 @@ resource "kubernetes_config_map" "traefik" {
     "traefik.toml" = <<-EOT
       [http.middlewares]
       [http.middlewares.customerauth.basicauth]
+      removeheader = true
       users = [
         "bittrance:$2y$05$JOd.zJDDDiHhnp.gRIVHfu5LlYWda4dVduYUiefjd17mDS8xVZkru"
+      ]
+      [http.middlewares.adminauth.basicauth]
+      headerField = "X-Remote-User"
+      removeheader = true
+      users = [
+        "admin:$2y$05$JOd.zJDDDiHhnp.gRIVHfu5LlYWda4dVduYUiefjd17mDS8xVZkru"
       ]
     EOT
   }
