@@ -51,6 +51,9 @@ resource "kubernetes_service" "traefik_metrics" {
 
 resource "kubernetes_manifest" "traefik_metrics" {
   provider = kubernetes-alpha
+  depends_on = [
+    helm_release.monitoring,
+  ]
 
   manifest = {
     apiVersion = "monitoring.coreos.com/v1"
