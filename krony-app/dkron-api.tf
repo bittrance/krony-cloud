@@ -15,6 +15,7 @@ resource "kubernetes_ingress" "dkron" {
             service_name = kubernetes_service.dkron.metadata.0.name
             service_port = "http"
           }
+          # This avoids exposing /metrics
           path = "/v1"
         }
       }
