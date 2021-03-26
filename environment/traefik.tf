@@ -30,6 +30,54 @@ resource "kubernetes_service" "traefik" {
   }
 }
 
+resource "kubernetes_service" "traefik_metrics" {
+  metadata {
+    name      = "traefik-metrics"
+    namespace = "kube-system"
+    labels = {
+      app = "traefik"
+    }
+  }
+  spec {
+    selector = {
+      app = "traefik"
+    }
+    port {
+      name = "metrics"
+      port = 8080
+    }
+  }
+}
+
+resource "kubernetes_manifest" "traefik_metrics" {
+  provider = kubernetes-alpha
+  depends_on = [
+    helm_release.monitoring,
+  ]
+
+  manifest = {
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "ServiceMonitor"
+    metadata = {
+      name      = "traefik-metrics"
+      namespace = "kube-system"
+      labels = {
+        release = "kube-prometheus-stack"
+      }
+    }
+    spec = {
+      selector = {
+        matchLabels = {
+          app = "traefik"
+        }
+      }
+      endpoints = [
+        { port = "metrics" },
+      ]
+    }
+  }
+}
+
 resource "kubernetes_daemonset" "traefik" {
   metadata {
     name      = "traefik-ingress-controller"
@@ -68,6 +116,8 @@ resource "kubernetes_daemonset" "traefik" {
             # "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory",
             "--certificatesresolvers.letsencrypt.acme.email=${var.letsencrypt_email}",
             "--certificatesresolvers.letsencrypt.acme.tlschallenge=true",
+            "--entrypoints.metrics.address=:8080",
+            "--metrics.prometheus.entrypoint=metrics",
             "--providers.file.filename=/config/traefik.toml",
           ]
           port {
