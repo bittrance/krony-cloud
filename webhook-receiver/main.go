@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -17,6 +18,7 @@ type Entries = map[string][]time.Time
 
 func RunReceiver(bindAddress string, verbose bool) *http.Server {
 	var entries = make(Entries)
+	var lock = sync.Mutex{}
 	if !verbose {
 		gin.SetMode("release")
 	}
@@ -27,7 +29,9 @@ func RunReceiver(bindAddress string, verbose bool) *http.Server {
 	router.Use(gin.Recovery())
 	router.PUT("/log/:token", func(c *gin.Context) {
 		token := c.Param("token")
+		lock.Lock()
 		entries[token] = append(entries[token], time.Now())
+		lock.Unlock()
 		c.String(200, "ok")
 	})
 	router.GET("/logs", func(c *gin.Context) {

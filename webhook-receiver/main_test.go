@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -94,6 +96,24 @@ var _ = Describe("WebhookReceiver", func() {
 				It("is empty again", func() {
 					Expect(seen).To(Equal(map[string][]time.Time{}))
 				})
+			})
+		})
+
+		Context("in large quantity", func() {
+			var quantity = 25
+			BeforeEach(func() {
+				var grp = sync.WaitGroup{}
+				grp.Add(quantity)
+				for i := 0; i < quantity; i++ {
+					go func(i int) {
+						client.R().Put("http://localhost:8080/log/" + fmt.Sprint(i))
+						grp.Done()
+					}(i)
+				}
+				grp.Wait()
+			})
+			It("logs them all", func() {
+				Expect(len(seen)).To(Equal(quantity))
 			})
 		})
 	})
