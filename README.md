@@ -15,6 +15,28 @@ The end result should have
 - **global/**: Terraform module with global control plane
 - **enviornment/**: Terraform module for one environment, i.e. instantiated for staging and production. It defines a Kubernetes cluster and supporting services.
 - **krony-app/**: Terraform module for the actual cloud service.
+- **webhook-receiver/**: Microservice used as target for Dkron callbacks, see below.
+
+### Webhook receiver
+
+This tool is used to give Dkron something to call during load and acceptance testing. It has three endpoints:
+
+- `PUT /log/:token`: adds an entry to the log. Each entry is a list of RFC3339 timestamps when calls where received for that particular token.
+- `GET /logs`: Returns a mapping of tokens to timestamps, see below for example.
+- `DELETE /logs`: Clears the entire mapping and starts from scratch.
+
+A returned mapping might look like so:
+```json
+{
+    "bar": [
+        "2021-03-27T18:59:30.072822641+01:00",
+    ],
+    "foo": [
+        "2021-03-27T18:59:30.071508593+01:00",
+        "2021-03-27T18:59:30.072207055+01:00",
+    ],
+}
+```
 
 ## Testing the service
 
