@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +22,7 @@ func RunReceiver(bindAddress string, verbose bool) *http.Server {
 	}
 	router := gin.New()
 	if verbose {
-		router.Use(gin.LoggerWithWriter(io.Discard))
+		router.Use(gin.LoggerWithWriter(gin.DefaultWriter))
 	}
 	router.Use(gin.Recovery())
 	router.PUT("/log/:token", func(c *gin.Context) {
