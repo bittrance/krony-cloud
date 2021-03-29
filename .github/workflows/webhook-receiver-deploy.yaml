@@ -27,4 +27,4 @@ jobs:
         with:
           push: true
           context: ./webhook-receiver/
-          tags: bittrance/webhook-receiver:${{ env.GITHUB_REF == 'refs/heads/master' && 'latest' || 'staging' }}
+          tags: bittrance/webhook-receiver:${{ github.ref == 'refs/heads/master' && 'latest' || 'staging' }}
