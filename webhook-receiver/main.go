@@ -43,8 +43,10 @@ func RunReceiver(bindAddress string, verbose bool) *http.Server {
 	})
 
 	server := &http.Server{
-		Addr:    bindAddress,
-		Handler: router,
+		Addr:         bindAddress,
+		Handler:      router,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
 	}
 
 	go func() {
