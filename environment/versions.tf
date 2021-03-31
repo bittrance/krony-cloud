@@ -8,9 +8,17 @@ terraform {
       source = "hashicorp/azurerm"
       version = "=2.46.0"
     }
+    flux = {
+      source  = "fluxcd/flux"
+      version = "0.1.1"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "2.0.3"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.10.0"
     }
     kubernetes-alpha = {
       source  = "hashicorp/kubernetes-alpha"
