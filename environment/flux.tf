@@ -30,6 +30,7 @@ data "flux_install" "main" {
 data "flux_sync" "main" {
   target_path = local.target_path
   url         = "https://github.com/${var.github_slug}"
+  branch      = var.env_name == "prod" ? "master" : var.env_name
 }
 
 data "kubectl_file_documents" "apply" {
